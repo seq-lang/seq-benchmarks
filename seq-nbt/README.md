@@ -3,7 +3,7 @@
 The following datafiles were used to conduct the experiments:
 
 - Human genome v37 (hs37d5): 
-  - [`genome.fa` and `chr1.fa`](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/hs37d5.fa.gz)
+  - [`genome.fa` and `chr1.fa`](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/phase2_reference_assembly_sequence/hs37d5.fa.gz)
   - [`Homo_sapiens_assembly19_1000genomes_decoy.fa`](gs://gcp-public-data--broad-references/Homo_sapiens_assembly19_1000genomes_decoy/Homo_sapiens_assembly19_1000genomes_decoy.fasta)
 - BWA-MEM FASTQs: 
   - [`sample.fastq`](http://cb.csail.mit.edu/cb/seq/nbt/bwa-data.bz2)
@@ -125,7 +125,7 @@ tm seq-fastmap-bp-chr1 $TOOLS/seq/fastmap-bp search $DATA/chr1.fa $DATA/sample.f
 ```
 
 
-Rust code was built with [rust-bio v0.32.0](https://github.com/rust-bio/rust-bio/tree/v0.32.0 with the following [patch](tools/rust/rust-bio.patch) that allows proper SMEM reconstruction:
+Rust code was built with [rust-bio v0.32.0](https://github.com/rust-bio/rust-bio/tree/v0.32.0) with the following [patch](tools/rust/rust-bio.patch) that allows proper SMEM reconstruction:
 ```bash
 # Build the tool
 (cd $TOOLS/rust; cargo build --release)

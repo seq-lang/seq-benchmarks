@@ -1,0 +1,10 @@
+[package]
+name = "biorust"
+version = "0.1.0"
+authors = ["Ibrahim Numanagić <inumanag@uvic.ca>"]
+edition = "2018"
+
+[dependencies]
+bio = { path = "rust-bio" }
+serde_derive = "*"
+bincode = "*"

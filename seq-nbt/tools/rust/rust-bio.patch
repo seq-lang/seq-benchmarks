@@ -1,0 +1,105 @@
+From f413b2dd4dfd69c74fb4357b57f86eebac2d407d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ibrahim=20Numanagi=C4=87?= <inumanag@uvic.ca>
+Date: Wed, 7 Apr 2021 10:03:18 -0700
+Subject: [PATCH] Update FMindex
+
+---
+ src/data_structures/fmindex.rs | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
+
+diff --git a/src/data_structures/fmindex.rs b/src/data_structures/fmindex.rs
+index b62885b..6b20886 100644
+--- a/src/data_structures/fmindex.rs
++++ b/src/data_structures/fmindex.rs
+@@ -179,10 +179,10 @@ impl<DBWT: Borrow<BWT>, DLess: Borrow<Less>, DOcc: Borrow<Occ>> FMIndex<DBWT, DL
+ /// A bi-interval on suffix array of the forward and reverse strand of a DNA text.
+ #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+ pub struct BiInterval {
+-    lower: usize,
+-    lower_rev: usize,
+-    size: usize,
+-    match_size: usize,
++    pub lower: usize,
++    pub lower_rev: usize,
++    pub size: usize,
++    pub match_size: usize,
+ }
+ 
+ impl BiInterval {
+@@ -286,31 +286,31 @@ impl<DBWT: Borrow<BWT>, DLess: Borrow<Less>, DOcc: Borrow<Occ>> FMDIndex<DBWT, D
+     /// assert_eq!(forward_positions, [0]);
+     /// assert_eq!(revcomp_positions, [6]);
+     /// ```
+-    pub fn smems(&self, pattern: &[u8], i: usize) -> Vec<BiInterval> {
++    pub fn smems(&self, pattern: &[u8], i: usize, min_seed: usize) -> (usize, Vec<(BiInterval, usize, usize)>) {
+         let curr = &mut Vec::new();
+         let prev = &mut Vec::new();
+         let mut matches = Vec::new();
+ 
+-        let mut interval = self.init_interval_with(pattern[i]);
+-
+-        for &a in pattern[i + 1..].iter() {
++        let mut interval = (self.init_interval_with(pattern[i]), i, i + 1);
++        for ia in i + 1..pattern.len() {
+             // forward extend interval
+-            let forward_interval = self.forward_ext(&interval, a);
++            let forward_interval = self.forward_ext(&interval.0, pattern[ia]);
+ 
+             // if size changed, add last interval to list
+-            if interval.size != forward_interval.size {
++            if interval.0.size != forward_interval.size {
+                 curr.push(interval);
+             }
+             // if new interval size is zero, stop, as no further forward extension is possible
+             if forward_interval.size == 0 {
+                 break;
+             }
+-            interval = forward_interval;
++            interval = (forward_interval, i, ia + 1);
+         }
+         // add the last non-zero interval
+         curr.push(interval);
+         // reverse intervals such that longest comes first
+         curr.reverse();
++        let ret = curr[0].2;
+ 
+         swap(curr, prev);
+         let mut j = pattern.len() as isize;
+@@ -323,7 +323,7 @@ impl<DBWT: Borrow<BWT>, DLess: Borrow<Less>, DOcc: Borrow<Occ>> FMDIndex<DBWT, D
+ 
+             for interval in prev.iter() {
+                 // backward extend interval
+-                let forward_interval = self.backward_ext(interval, a);
++                let forward_interval = self.backward_ext(&interval.0, a);
+ 
+                 if (forward_interval.size == 0 || k == -1) &&
+                         // interval could not be extended further
+@@ -332,12 +332,14 @@ impl<DBWT: Borrow<BWT>, DLess: Borrow<Less>, DOcc: Borrow<Occ>> FMDIndex<DBWT, D
+                         curr.is_empty() && k < j
+                 {
+                     j = k;
+-                    matches.push(*interval);
++                    if interval.2 - ((k + 1) as usize) >= min_seed {
++                        matches.push((interval.0, (k + 1) as usize, interval.2));
++                    }
+                 }
+                 // add _interval to curr (will be further extended next iteration)
+                 if forward_interval.size != 0 && forward_interval.size as isize != last_size {
+                     last_size = forward_interval.size as isize;
+-                    curr.push(forward_interval);
++                    curr.push((forward_interval, interval.1, interval.2));
+                 }
+             }
+             if curr.is_empty() {
+@@ -346,7 +348,7 @@ impl<DBWT: Borrow<BWT>, DLess: Borrow<Less>, DOcc: Borrow<Occ>> FMDIndex<DBWT, D
+             swap(curr, prev);
+         }
+ 
+-        matches
++        (ret, matches)
+     }
+ 
+     /// Initialize interval with given start character.
+-- 
+2.31.1
+

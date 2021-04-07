@@ -1,0 +1,23 @@
+[1;36mdiff -ruN bwa-0.7.17/fastmap.c patched/fastmap.c[0;0m
+[1;35m--- bwa-0.7.17/fastmap.c	2017-10-23 10:13:09.000000000 -0700[0;0m
+[1;35m+++ patched/fastmap.c	2021-03-25 12:02:05.000000000 -0700[0;0m
+[0;36m@@ -5,6 +5,7 @@[0;0m
+[0;0m #include <string.h>[0;0m
+[0;0m #include <limits.h>[0;0m
+[0;0m #include <ctype.h>[0;0m
+[0;32m+#include <time.h>[0;0m
+[0;0m #include <math.h>[0;0m
+[0;0m #include "bwa.h"[0;0m
+[0;0m #include "bwamem.h"[0;0m
+[0;36m@@ -404,9 +405,11 @@[0;0m
+[0;0m 		return 1;[0;0m
+[0;0m 	}[0;0m
+[0;0m [0;0m
+[0;32m+	clock_t start = clock();[0;0m
+[0;0m 	fp = xzopen(argv[optind + 1], "r");[0;0m
+[0;0m 	seq = kseq_init(fp);[0;0m
+[0;0m 	if ((idx = bwa_idx_load(argv[optind], BWA_IDX_BWT|BWA_IDX_BNS)) == 0) return 1;[0;0m
+[0;32m+	fprintf(stderr, "[BWA] index load took %f\n", ((double) (clock() - start)) / CLOCKS_PER_SEC);[0;0m
+[0;0m 	itr = smem_itr_init(idx->bwt);[0;0m
+[0;0m 	smem_config(itr, min_intv, max_len, max_intv);[0;0m
+[0;0m 	while (kseq_read(seq) >= 0) {[0;0m

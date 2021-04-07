@@ -1,0 +1,87 @@
+From abfbb24b2c86a29a30ae0d2de2c027e8436f2ba4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ibrahim=20Numanagi=C4=87?= <inumanag@uvic.ca>
+Date: Wed, 7 Apr 2021 12:36:58 -0700
+Subject: [PATCH] Disable MD-tag calculation
+
+---
+ Makefile  | 17 +++--------------
+ MrsFAST.c | 12 ++++++------
+ 2 files changed, 9 insertions(+), 20 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index ee19c36..d9e9119 100644
+--- a/Makefile
++++ b/Makefile
+@@ -9,7 +9,7 @@ build: clean_executables SSE_FLAGS mrsfast snp_indexer clean_objects
+ 
+ 
+ LIBS=-lz -lm -pthread -lpthread
+-CFLAGS=-fno-pic -DMRSFAST_VERSION=\"$(MRSFAST_VERSION)\" -DBUILD_DATE=\"$(BUILD_DATE)\"
++CFLAGS=-fno-pic -fPIE -DMRSFAST_VERSION=\"$(MRSFAST_VERSION)\" -DBUILD_DATE=\"$(BUILD_DATE)\"
+ 
+ objects=baseFAST.o Sort.o MrsFAST.o Common.o CommandLineParser.o RefGenome.o HashTable.o Reads.o Output.o SNPReader.o  HELP.o
+ 
+@@ -62,21 +62,10 @@ PROFILE_FLAGS:
+ 
+ SSE_FLAGS:
+ ifeq ($(shell uname -s),Linux)
+-ifeq ($(with-sse4),no)
+-		$(shell echo "-DSSE4=0")
+-else
+         	$(eval CFLAGS = $(CFLAGS) \
+         	$(shell gv=`$(CC) -dumpversion`; \
+             	    sc=`grep -c "sse4" /proc/cpuinfo`; \
+-                	echo $$sc.$$gv | awk -F. '{if($$1>0 && $$2>=4 && $$3>=4) print "-DSSE4=1 -msse4.2"; else print "-DSSE4=0"}'))
+-endif
++                	echo $$sc.$$gv | awk -F. '{if($$1>0 && $$2>=4 ) print "-DSSE4=1 -msse4.2"; else print "-DSSE4=0"}'))
+ else
+-ifeq ($(with-sse4),no)
+-		$(shell echo "-DSSE4=0")
+-else
+-        $(eval CFLAGS = $(CFLAGS) \
+-        $(shell gv=`$(CC) -dumpversion`; \
+-                sc=`sysctl -n machdep.cpu.features | grep -c "SSE4"` ;\
+-                echo $$sc.$$gv | awk -F. '{if($$1>0 && $$2>=4 && $$3>=4) print "-DSSE4=1 -msse4.2"; else print "-DSSE4=0"}'))
+-endif
++        $(eval CFLAGS = $(CFLAGS) -DSSE4=1 -msse4.2)
+ endif
+diff --git a/MrsFAST.c b/MrsFAST.c
+index a546de1..279c89e 100644
+--- a/MrsFAST.c
++++ b/MrsFAST.c
+@@ -1114,9 +1114,9 @@ void mapSingleEndSeqListBalMultiple(GeneralIndex *l1, int s1, GeneralIndex *l2,
+ 				if (err != -1)
+ 				{
+ 
+-					mderr = calculateMD(genLoc, _tmpCmpSeq, _tmpSeq, _tmpQual, err, &_msf_op[id]);
+-					if (mderr < 0)
+-						continue;
++					//mderr = calculateMD(genLoc, _tmpCmpSeq, _tmpSeq, _tmpQual, err, &_msf_op[id]);
++					//if (mderr < 0)
++					//	continue;
+ 
+ 					_msf_mappingCnt[id]++;
+ 					_msf_seqList[r].hits[0]++;
+@@ -1151,7 +1151,7 @@ void mapSingleEndSeqListBalMultiple(GeneralIndex *l1, int s1, GeneralIndex *l2,
+ 					}
+ 					else
+ 					{
+-						_msf_buffer_size[id] += snprintf(_msf_buffer[id]+_msf_buffer_size[id], 1000, "%s\t%d\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\t%s\tNM:i:%d\tMD:Z:%s\n", 
++						_msf_buffer_size[id] += snprintf(_msf_buffer[id]+_msf_buffer_size[id], 1000, "%s\t%d\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\t%s\tNM:i:%d\n", 
+ 						_msf_seqList[r].name,		// READ NAME
+ 						16*d,						// FLAG
+ 						_msf_refGenName, 			// CHR NAME
+@@ -1163,8 +1163,8 @@ void mapSingleEndSeqListBalMultiple(GeneralIndex *l1, int s1, GeneralIndex *l2,
+ 						0,							// ISIZE
+ 						_tmpSeq,					// SEQ
+ 						_tmpQual, 					// QUAL
+-						mderr,						// ERR
+-						_msf_op[id]);				// MD
++						err						// ERR
++						);				// MD
+ 					}
+ 				
+ 					if (_msf_seqList[r].hits[0] == 1)
+-- 
+2.31.1
+

@@ -17,7 +17,7 @@ The following datafiles were used to conduct the experiments:
   - [`hgmm_100_R1.fastq`](http://cb.csail.mit.edu/cb/seq/nbt/umi-data.bz2)
 - GATK BAMs and HapTree-X BAMs:
   - Details are available [here](https://github.com/0xTCG/haptreex/blob/master/paper/experiments.ipynb). 
-    For 10X sample, we used NA12878 restricted top chr19-22 (inclusive).
+    For 10X sample, we used NA12878 sample BAM restricted to chromosomes 19–22 (inclusive).
 
 The following commands will set up the benchmarking environment:
 ```bash
